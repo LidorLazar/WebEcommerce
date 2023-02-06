@@ -4,21 +4,20 @@ from .models import Product,Order,OrderItem,Reviwe,ShippingAddress, Profile
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
-class UserSerializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField(read_only=True)
     id = serializers.SerializerMethodField(read_only=True)
     admin = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = User
+        model = Profile
         fields = ['id', 'name', 'username', 'email', 'admin']
 
-
     def get_name(self, obj):
-        name = obj.first_name
-        if name =='':
-            name = obj.email
-        return name
+        if obj.first_name:
+            return obj.first_name
+        else:
+            return obj.email
 
     def get_id(self, obj):
         return obj.id
@@ -26,11 +25,11 @@ class UserSerializer(serializers.ModelSerializer):
     def get_admin(self, obj):
         return obj.is_staff
   
-class UserSerializerWithToken(UserSerializer):
+class UserSerializerWithToken(ProfileSerializer):
     token = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = User
+        model = Profile
         fields = ['id',  'username', 'email', 'name', 'admin', 'token']
 
     def get_token(self, obj):

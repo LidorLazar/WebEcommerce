@@ -12,5 +12,8 @@ urlpatterns = [
     path('category/<int:pk>', views.product_from_category),
     path('users/profile/update/', views.updateUserProfile),
     path('users/login/refresh/', views.RefreshTokenView.as_view()),
+    path('products/sreview/', views.send_review),
+    path('products/greview/<int:pk>', views.get_review_spsific_prod),
+    path('products/getallreview/', views.get_all_review),
 
 ]
