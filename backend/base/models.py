@@ -11,7 +11,9 @@ class Profile(AbstractUser):
     address = models.CharField(max_length=200)
     city = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20)
-    image = models.ImageField(upload_to='profiles/', blank=True, null=True, default='no-image.png')
+    image = models.ImageField(upload_to='images/', blank=True, null=True, default='no-image.png')
+    image = models.ImageField(null = False, blank = False, default='no-image.png')
+
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'name', 'address', 'city', 'phone_number']

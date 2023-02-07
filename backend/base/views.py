@@ -4,8 +4,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from .models import Product, Profile, Reviwe
-from .serilaizer import ProductSerializer, UserSerializerWithToken, ProfileSerializer, ReviweSerializer
+from .models import Product, Profile, Reviwe, Order
+from .serilaizer import ProductSerializer, UserSerializerWithToken, ProfileSerializer, ReviweSerializer, OrderSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -127,25 +127,19 @@ def get_users(request):
     serilaizer = ProfileSerializer(Profile.objects.all(), many=True)
     return Response(serilaizer.data)
 
+
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def updateUserProfile(request):
+def update_user_profile(request):
     user = request.user
-    serializer = UserSerializerWithToken(user, many= False)
-    data = request.data
-    print(data)
-    # user.image = data['image']
-    # data.city = data['city']
-    # user.address = data["address"]
-    # user.phone_number = data["phone_number"]
+    serializer = ProfileSerializer(instance=user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+    return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
 
-    # if data['password'] != '':
-    #     user.password = make_password(data['password'])
 
-    print(user)
-    # user.save()
-    
-    return Response(serializer.data)
+
 
 #################################################################
 ################### Product #####################################
@@ -210,4 +204,19 @@ def get_all_review(request):
 def get_review_spsific_prod(request, pk):
     reviews = Reviwe.objects.filter(product=Product.objects.get(id=pk))
     serializer = ReviweSerializer(reviews, many=True)
+    return Response(serializer.data)
+
+
+
+###########################################
+########## order ##########################
+###########################################
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_order_user(request):
+    user = request.user
+    order = Order.objects.filter(user_id=user)
+    serializer = OrderSerializer(order, many=True)
     return Response(serializer.data)

@@ -11,7 +11,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id', 'name', 'username', 'email', 'admin']
+        fields ='__all__'
 
     def get_name(self, obj):
         if obj.first_name:
@@ -30,7 +30,7 @@ class UserSerializerWithToken(ProfileSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id',  'username', 'email', 'name', 'admin', 'token']
+        fields = ['id',  'username', 'email', 'name', 'admin', 'token', ]
 
     def get_token(self, obj):
         token = RefreshToken.for_user(obj)
@@ -67,8 +67,3 @@ class ShippingAddressSerializer(serializers.ModelSerializer):
         model = ShippingAddress
         fields = '__all__'
 
-
-class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = '__all__'
