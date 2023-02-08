@@ -20,18 +20,6 @@ from django.core.exceptions import ValidationError
 ############# Authentication #########################
 ######################################################
 
-# class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-#     def validate(self, attrs):
-#         data = super().validate(attrs)
-
-#         serializer = UserSerializerWithToken(self.user).data
-#         for key, vlaue in serializer.items():
-#             data[key] = vlaue
-#         return data
-
-
-# class MyTokenObtainPairView(TokenObtainPairView):
-#     serializer_class = MyTokenObtainPairSerializer
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -42,9 +30,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['is_superuser'] = user.is_superuser
         return token
 
+
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
-
+        
 
 @api_view(['POST'])
 def register(request):
@@ -71,12 +60,7 @@ def register(request):
 class RefreshTokenView(generics.GenericAPIView):
     serializer_class = TokenRefreshSerializer
 
-    
 
-    # def post(self, request, *args, **kwargs):
-    #     serializer = self.get_serializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
 ############################################
 ########### User ###########################
@@ -96,21 +80,6 @@ def get_users(request):
     return Response(serilaizer.data)
 
 
-
-@api_view(['GET'])
-def get_routes(request):
-    routes = [
-        '/api/products/',
-        '/api/products/create/',
-        '/api/products/upload/',
-        '/api/products/<id>/reviwes/',
-        '/api/products/top/',
-        '/api/products/<id>',
-        '/api/products/delete/<id>',
-        '/api/products/<update>/<id>',
-    ]
-
-    return Response(routes)
 
 
 @api_view(['GET'])
