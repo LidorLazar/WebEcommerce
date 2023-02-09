@@ -33,33 +33,31 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
-        
+
 
 @api_view(['POST'])
 def register(request):
+    data = request.data
+    password = make_password(data['password'])
     try:
-        data = request.data
-        password=make_password(data['password'])
         user = Profile.objects.create(
             name=data['name'],
             email=data['email'],
             username=data['name'],
             address=data['address'],
             city=data['city'],
-            password = password
-          )
+            password=password
+        )
 
         serializer = UserSerializerWithToken(user, many=False)
         return Response(serializer.data)
     except Exception as e:
         print(e)
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
+        return Response({"msg": 'errrrroooorrrrrr'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class RefreshTokenView(generics.GenericAPIView):
     serializer_class = TokenRefreshSerializer
-
 
 
 ############################################
@@ -78,8 +76,6 @@ def get_user_profile(request):
 def get_users(request):
     serilaizer = ProfileSerializer(Profile.objects.all(), many=True)
     return Response(serilaizer.data)
-
-
 
 
 @api_view(['GET'])
@@ -101,13 +97,12 @@ def get_users(request):
 @permission_classes([IsAuthenticated])
 def update_user_profile(request):
     user = request.user
-    serializer = ProfileSerializer(instance=user, data=request.data, partial=True)
+    serializer = ProfileSerializer(
+        instance=user, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
         return Response(status=status.HTTP_200_OK, data=serializer.data)
     return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
-
-
 
 
 #################################################################
@@ -163,10 +158,11 @@ def send_review(request):
         print(e)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
+
 @api_view(['GET'])
 def get_all_review(request):
     serializer = ReviweSerializer(Reviwe.objects.all(), many=True)
-    return Response (serializer.data)
+    return Response(serializer.data)
 
 
 @api_view(['GET'])
@@ -174,7 +170,6 @@ def get_review_spsific_prod(request, pk):
     reviews = Reviwe.objects.filter(product=Product.objects.get(id=pk))
     serializer = ReviweSerializer(reviews, many=True)
     return Response(serializer.data)
-
 
 
 ###########################################

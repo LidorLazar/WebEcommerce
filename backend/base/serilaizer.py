@@ -17,7 +17,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         if obj.first_name:
             return obj.first_name
         else:
-            return obj.email
+            return obj.username
 
     def get_id(self, obj):
         return obj.id
