@@ -5,14 +5,13 @@ from django.contrib.auth.models import AbstractUser
 # Create your models here.
 
 class Profile(AbstractUser):
+    username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=200)
     city = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20)
     image = models.ImageField(upload_to='images/', blank=True, null=True, default='no-image.png')
-
-
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'name', 'address', 'city', 'phone_number']
@@ -64,11 +63,11 @@ class Reviwe(models.Model):
         (5, 5)
     )
 
-    product = models.ManyToManyField(Product)
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
     user_id = models.ForeignKey(Profile, on_delete=models.PROTECT)
     name =  models.CharField(max_length=100, null=False, blank=False)
     rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES)
-    text_comment = models.TextField( null=True, blank=True)
+    text_comment = models.TextField(null=True, blank=True)
     id = models.AutoField(primary_key=True, editable=False)
 
     def __str__(self):
@@ -85,7 +84,7 @@ class Order(models.Model):
     create_order = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return str(self.user_id.name, )
+        return str(self.user_id.name)
 
 
 class OrderItem(models.Model):

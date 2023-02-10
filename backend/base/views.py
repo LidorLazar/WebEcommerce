@@ -10,9 +10,13 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.contrib.auth.hashers import make_password
-from rest_framework.views import APIView
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.utils.decorators import method_decorator
+from django.views.generic import View
+import json
+from django.http import HttpResponse, HttpResponseBadRequest
+from paypalrestsdk import notifications
+
 
 # Create your views here.
 
@@ -137,7 +141,6 @@ def product_from_category(request, pk):
 ############# Review ###########################
 ################################################
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def send_review(request):
@@ -157,6 +160,10 @@ def send_review(request):
     except Exception as e:
         print(e)
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+
+
 
 
 @api_view(['GET'])
@@ -184,3 +191,9 @@ def get_order_user(request):
     order = Order.objects.filter(user_id=user)
     serializer = OrderSerializer(order, many=True)
     return Response(serializer.data)
+
+
+########################################
+######### paypal #######################
+########################################
+
