@@ -13,9 +13,6 @@ from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.utils.decorators import method_decorator
 from django.views.generic import View
-import json
-from django.http import HttpResponse, HttpResponseBadRequest
-from paypalrestsdk import notifications
 
 
 # Create your views here.
@@ -38,26 +35,32 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-
 @api_view(['POST'])
 def register(request):
     data = request.data
     password = make_password(data['password'])
-    try:
-        user = Profile.objects.create(
-            name=data['name'],
-            email=data['email'],
-            username=data['name'],
-            address=data['address'],
-            city=data['city'],
-            password=password
-        )
+    name=data['name']
+    email=data['email']
+    username=data['name']
+    address=data['address']
+    city=data['city']
+    password=password
+    if not (password and name and email and username and address and city): #Check if all the inputs is full
+        return Response({"error": "You need to put all required fields."},status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = UserSerializerWithToken(user, many=False)
-        return Response(serializer.data)
-    except Exception as e:
-        print(e)
-        return Response({"msg": 'errrrroooorrrrrr'}, status=status.HTTP_404_NOT_FOUND)
+    try:
+        profile = Profile.objects.get(username=data['name']) #Chack if the username is exist in Profile 
+        return Response({'error': 'The username already exists. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
+    except Profile.DoesNotExist:
+        try:
+            profile = Profile.objects.get(email=email)#Chack if the email is exist in Profile 
+            return Response({'error': 'The email already exists. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Profile.DoesNotExist:
+            user = Profile.objects.create( name=data['name'],email=data['email'],username=data['name'],address=data['address'],city=data['city'],password=password)
+            serializer = ProfileSerializer(user, many=False)
+            return Response(serializer.data)
+
+
 
 
 class RefreshTokenView(generics.GenericAPIView):
@@ -146,6 +149,7 @@ def product_from_category(request, pk):
 def send_review(request):
     data = request.data
     user = request.user
+
     try:
         product = Product.objects.get(id=data['id'])
         profile = Profile.objects.get(username=user)
@@ -160,10 +164,6 @@ def send_review(request):
     except Exception as e:
         print(e)
         return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-
-
 
 
 @api_view(['GET'])
@@ -193,7 +193,30 @@ def get_order_user(request):
     return Response(serializer.data)
 
 
-########################################
-######### paypal #######################
-########################################
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def new_order(request):
+    serializer = OrderSerializer(
+        data=request.data["orderData"], context={"user": request.user}
+    )
+    if serializer.is_valid(raise_exception=True):
+        serializer.save()
+        print(serializer.data)
+        for item in request.data["orderDetails"]:
+            # print(request.data)
+            order_dets = {}
+            order_dets["product"] = item["id"]
+            order_dets["order"] = (
+                Order.objects.values_list("id", flat=True)
+                .filter(user=request.user.id)
+                .last()
+            )
+            serializer2 = OrderItemSerializer(data=order_dets)
+            if serializer2.is_valid(raise_exception=True):
+                serializer2.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 

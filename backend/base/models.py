@@ -80,8 +80,11 @@ class Order(models.Model):
     user_id = models.ForeignKey(Profile, on_delete=models.PROTECT)
     total = models.DecimalField(max_digits=7, decimal_places=2)
     paid = models.BooleanField(default=False)
-    paid_methods = models.CharField(max_length=20, null=False, blank=False)
     create_order = models.DateTimeField(auto_now_add=True)
+    address = models.CharField(max_length=1000, null=False, blank=False)
+    city =  models.CharField(max_length=50, null=False, blank=False)
+    country = models.CharField(max_length=50, null=False, blank=False)
+    zip_code = models.CharField(max_length=10, null=False, blank=False)
 
     def __str__(self):
         return str(self.user_id.name)
@@ -99,16 +102,3 @@ class OrderItem(models.Model):
     def __str__(self):
         return self.name
 
-
-
-class ShippingAddress(models.Model):
-
-    id = models.AutoField(primary_key=True, editable=False)
-    order = models.OneToOneField(Order, on_delete=models.PROTECT, null=False, blank=False)
-    address = models.CharField(max_length=1000, null=False, blank=False)
-    city =  models.CharField(max_length=50, null=False, blank=False)
-    country = models.CharField(max_length=50, null=False, blank=False)
-    zip_code = models.CharField(max_length=10, null=False, blank=False)
-
-    def __str__(self):
-        return self.address

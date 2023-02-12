@@ -17,4 +17,5 @@ urlpatterns = [
     path('products/getallreview/', views.get_all_review),
     path('users/orders/', views.get_order_user),
 
+
 ]
