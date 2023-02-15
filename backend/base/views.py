@@ -189,7 +189,7 @@ def get_review_spsific_prod(request, pk):
 @permission_classes([IsAuthenticated])
 def get_order_user(request):
     user = request.user
-    order = Order.objects.filter(user_id=user)
+    order = Order.objects.filter(user=user)
     serializer = OrderSerializer(order, many=True)
     return Response(serializer.data)
 
@@ -206,35 +206,42 @@ def return_all_product_in_order_user(request):
     return Response(list_prod)
 
 
-
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_new_order(request): 
-    try:
-        serializer = OrderSerializer(data = request.data["orderData"], context = {"user_id": request.user.id})
-        print(serializer)
-        if serializer.is_valid(raise_exception = True): 
-            order = serializer.save()
-            order_total = 0
-            order_quantity = 0
-            for item in request.data["orderDetails"]: 
-                order_details = {}
-                order_details["product"] = item["id"]
-                order_details["order"] = order.id
-                order_details["quantity"] = item["quantity"]
-                order_details["total"] = float(item["price"]) * item["quantity"]
-                order_total += round(float(order_details["total"]))
-                order_quantity += order_details["quantity"]
-                serializer2 = OrderItemSerializer(data = order_details)
-                if serializer2.is_valid(raise_exception = True): 
-                    serializer2.save()
-            order.total = order_total
-            order.quantity = order_quantity
-            order.save()
-            return Response(serializer.data, status = status.HTTP_201_CREATED)
-    except Exception as e:
-        return Response(str(e), status = status.HTTP_400_BAD_REQUEST)
+    order_serializer = OrderSerializer(data=request.data["orderData"], context={"user": request.user})
+    print(request.user)
+    order_serializer.is_valid(raise_exception=True)
+    order = order_serializer.save()
+
+    # Create a list of order details and save them
+    order_details = [
+        {
+            "product": item["id"],
+            "order": order.id,
+            "qty": item["qty"],
+            "total": float(item["price"]) * item["qty"],
+        }
+        for item in request.data["orderDetails"]
+    ]
+    order_detail_serializer = OrderItemSerializer(data=order_details, many=True)
+    order_detail_serializer.is_valid(raise_exception=True)
+    order_detail_serializer.save()
+
+    # Calculate the order total and qty
+    order_total = round(sum(detail["total"] for detail in order_details), 2)
+    print(order_total)
+    order_qty = sum(detail["qty"] for detail in order_details)
+
+    # Update the order with the total and qty
+    order.total = order_total
+    order.qty = order_qty
+    order.save()
+
+    # Serialize and return the order in the response
+    response_data = OrderSerializer(order).data
+    return Response(response_data, status=status.HTTP_201_CREATED)
+
 
 
 

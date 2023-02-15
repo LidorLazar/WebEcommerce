@@ -45,10 +45,13 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Order
         fields = '__all__'
+    
+    def create(self, validated_data): 
+        user = self.context['user']
+        return Order.objects.create(**validated_data, user = user)
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:

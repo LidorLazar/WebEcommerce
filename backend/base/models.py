@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator
+
 
 
 # Create your models here.
@@ -75,29 +77,24 @@ class Reviwe(models.Model):
 
 
 class Order(models.Model):
-
-    id = models.AutoField(primary_key=True, editable=False)
-    user = models.ForeignKey(Profile, on_delete=models.PROTECT)
-    total = models.DecimalField(max_digits=7, decimal_places=2)
-    create_order = models.DateTimeField(auto_now_add=True)
-    address = models.CharField(max_length=1000, null=False, blank=False)
-    city =  models.CharField(max_length=50, null=False, blank=False)
-    country = models.CharField(max_length=50, null=False, blank=False)
-    zip_code = models.CharField(max_length=10, null=False, blank=False)
+    id = models.BigAutoField(primary_key = True)
+    user = models.ForeignKey(Profile, on_delete = models.PROTECT, default = 1)
+    order_date = models.DateTimeField(auto_now_add = True)
+    address = models.CharField(max_length = 100, null = False, blank = True)
+    city = models.CharField(max_length = 100, null = False, blank = True)
+    country = models.CharField(max_length = 50, null = False, blank = True)
+    zip_code = models.CharField(max_length = 15, null = False, blank = False)
 
     def __str__(self):
-        return str(self.user.name)
-
+        return str(self.id)
 
 class OrderItem(models.Model):
+    id = models.BigAutoField(primary_key = True, unique = True)
+    order = models.ForeignKey(Order, on_delete = models.PROTECT, null = False, blank = False)
+    product = models.ForeignKey(Product, on_delete = models.PROTECT, null = True)
+    qty = models.IntegerField(null = True, blank = True, validators=[MinValueValidator(1)])
+    name = models.ForeignKey(Profile, on_delete = models.PROTECT, default = 1)
+    total = models.DecimalField(max_digits = 7, decimal_places = 2, null = True)
 
-    id = models.AutoField(primary_key=True, editable=False)
-    product =  models.ForeignKey(Product, on_delete=models.PROTECT)
-    order =  models.ForeignKey(Order, on_delete=models.PROTECT)
-    name = models.CharField(max_length=20, null=False, blank=False)
-    quantity = models.IntegerField(null=False, blank=False, default=0)
-    price = models.DecimalField(max_digits=7, decimal_places=2)
-
-    def __str__(self):
-        return self.order
-
+    def __str__(self): 
+        return str(self.id)
