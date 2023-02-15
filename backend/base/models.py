@@ -77,9 +77,8 @@ class Reviwe(models.Model):
 class Order(models.Model):
 
     id = models.AutoField(primary_key=True, editable=False)
-    user_id = models.ForeignKey(Profile, on_delete=models.PROTECT)
+    user = models.ForeignKey(Profile, on_delete=models.PROTECT)
     total = models.DecimalField(max_digits=7, decimal_places=2)
-    paid = models.BooleanField(default=False)
     create_order = models.DateTimeField(auto_now_add=True)
     address = models.CharField(max_length=1000, null=False, blank=False)
     city =  models.CharField(max_length=50, null=False, blank=False)
@@ -87,7 +86,7 @@ class Order(models.Model):
     zip_code = models.CharField(max_length=10, null=False, blank=False)
 
     def __str__(self):
-        return str(self.user_id.name)
+        return str(self.user.name)
 
 
 class OrderItem(models.Model):
@@ -100,5 +99,5 @@ class OrderItem(models.Model):
     price = models.DecimalField(max_digits=7, decimal_places=2)
 
     def __str__(self):
-        return self.name
+        return self.order
 

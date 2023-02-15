@@ -16,6 +16,8 @@ urlpatterns = [
     path('products/greview/<int:pk>', views.get_review_spsific_prod),
     path('products/getallreview/', views.get_all_review),
     path('users/orders/', views.get_order_user),
+    path('users/orders/product/', views.return_all_product_in_order_user),
+    path('users/checkout/', views.create_new_order),
 
 
 ]

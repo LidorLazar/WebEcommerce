@@ -4,15 +4,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from .models import Product, Profile, Reviwe, Order
-from .serilaizer import ProductSerializer, UserSerializerWithToken, ProfileSerializer, ReviweSerializer, OrderSerializer
+from .models import Product, Profile, Reviwe, Order, OrderItem
+from .serilaizer import ProductSerializer, OrderItemSerializer, ProfileSerializer, ReviweSerializer, OrderSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.contrib.auth.hashers import make_password
-from django.core.mail import send_mail
-from django.utils.decorators import method_decorator
-from django.views.generic import View
 
 
 # Create your views here.
@@ -35,32 +32,35 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
+
 @api_view(['POST'])
 def register(request):
     data = request.data
     password = make_password(data['password'])
-    name=data['name']
-    email=data['email']
-    username=data['name']
-    address=data['address']
-    city=data['city']
-    password=password
-    if not (password and name and email and username and address and city): #Check if all the inputs is full
-        return Response({"error": "You need to put all required fields."},status=status.HTTP_400_BAD_REQUEST)
+    name = data['name']
+    email = data['email']
+    username = data['name']
+    address = data['address']
+    city = data['city']
+    password = password
+    # Check if all the inputs is full
+    if not (password and name and email and username and address and city):
+        return Response({"error": "You need to put all required fields."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        profile = Profile.objects.get(username=data['name']) #Chack if the username is exist in Profile 
+        # Chack if the username is exist in Profile
+        profile = Profile.objects.get(username=data['name'])
         return Response({'error': 'The username already exists. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
     except Profile.DoesNotExist:
         try:
-            profile = Profile.objects.get(email=email)#Chack if the email is exist in Profile 
+            # Chack if email is exist in Profile
+            profile = Profile.objects.get(email=email)
             return Response({'error': 'The email already exists. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
         except Profile.DoesNotExist:
-            user = Profile.objects.create( name=data['name'],email=data['email'],username=data['name'],address=data['address'],city=data['city'],password=password)
+            user = Profile.objects.create(name=data['name'], email=data['email'], username=data['name'],
+                                          address=data['address'], city=data['city'], password=password)
             serializer = ProfileSerializer(user, many=False)
             return Response(serializer.data)
-
-
 
 
 class RefreshTokenView(generics.GenericAPIView):
@@ -144,6 +144,7 @@ def product_from_category(request, pk):
 ############# Review ###########################
 ################################################
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def send_review(request):
@@ -193,30 +194,49 @@ def get_order_user(request):
     return Response(serializer.data)
 
 
-
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def new_order(request):
-    serializer = OrderSerializer(
-        data=request.data["orderData"], context={"user": request.user}
-    )
-    if serializer.is_valid(raise_exception=True):
-        serializer.save()
-        print(serializer.data)
-        for item in request.data["orderDetails"]:
-            # print(request.data)
-            order_dets = {}
-            order_dets["product"] = item["id"]
-            order_dets["order"] = (
-                Order.objects.values_list("id", flat=True)
-                .filter(user=request.user.id)
-                .last()
-            )
-            serializer2 = OrderItemSerializer(data=order_dets)
-            if serializer2.is_valid(raise_exception=True):
-                serializer2.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+def return_all_product_in_order_user(request):
+    user = request.user
+    list_prod = []
+    order = OrderItem.objects.filter(name=user)
+    serializer = OrderItemSerializer(order, many=True)
+    for i in range(len(serializer.data)):
+        list_prod.append(serializer.data[i]['product'])
+    return Response(list_prod)
+
+
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_new_order(request): 
+    try:
+        serializer = OrderSerializer(data = request.data["orderData"], context = {"user_id": request.user.id})
+        print(serializer)
+        if serializer.is_valid(raise_exception = True): 
+            order = serializer.save()
+            order_total = 0
+            order_quantity = 0
+            for item in request.data["orderDetails"]: 
+                order_details = {}
+                order_details["product"] = item["id"]
+                order_details["order"] = order.id
+                order_details["quantity"] = item["quantity"]
+                order_details["total"] = float(item["price"]) * item["quantity"]
+                order_total += round(float(order_details["total"]))
+                order_quantity += order_details["quantity"]
+                serializer2 = OrderItemSerializer(data = order_details)
+                if serializer2.is_valid(raise_exception = True): 
+                    serializer2.save()
+            order.total = order_total
+            order.quantity = order_quantity
+            order.save()
+            return Response(serializer.data, status = status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response(str(e), status = status.HTTP_400_BAD_REQUEST)
+
+
 
 
 
