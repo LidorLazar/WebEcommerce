@@ -7,6 +7,7 @@ Django==4.1.5
 django-cors-headers==3.13.0
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
+gunicorn==20.1.0
 idna==3.4
 paypalrestsdk==1.13.1
 Pillow==9.4.0
