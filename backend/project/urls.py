@@ -18,7 +18,7 @@ from django.urls import path, include
 
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib.staticfile.url import staticfile_urlpatterns
+from django.contrib.staticfiles.url import staticfile_urlpatterns
 
 
 urlpatterns = [
