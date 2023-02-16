@@ -1,0 +1,17 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.bak
+*.tmp
+*.log
+*.idea
+venv
+node_modules
+*.sqlite3
+*.db
+*.pyc
+*.pyo
+*.pyd
+*.log
