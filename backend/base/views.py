@@ -17,7 +17,13 @@ from django.contrib.auth.hashers import make_password
 ######################################################
 ############# Authentication #########################
 ######################################################
+"""
+All the function related in authentication
 
+1. Login 
+2. Register -in register i chack if username or email not exist
+
+"""
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -70,19 +76,15 @@ class RefreshTokenView(generics.GenericAPIView):
 ############################################
 ########### User ###########################
 ############################################
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_user_profile(request):
-    user = request.user
-    serilaizer = ProfileSerializer(Profile, many=False)
-    return Response(serilaizer.data)
 
+"""
+All the function related in User
 
-@api_view(['GET'])
-@permission_classes([IsAdminUser])
-def get_users(request):
-    serilaizer = ProfileSerializer(Profile.objects.all(), many=True)
-    return Response(serilaizer.data)
+1. Get data per user
+2. Update datd per user 
+
+"""
+
 
 
 @api_view(['GET'])
@@ -90,13 +92,6 @@ def get_users(request):
 def get_user_profile(request):
     user = request.user
     serilaizer = ProfileSerializer(user, many=False)
-    return Response(serilaizer.data)
-
-
-@api_view(['GET'])
-@permission_classes([IsAdminUser])
-def get_users(request):
-    serilaizer = ProfileSerializer(Profile.objects.all(), many=True)
     return Response(serilaizer.data)
 
 
@@ -115,10 +110,20 @@ def update_user_profile(request):
 #################################################################
 ################### Product #####################################
 #################################################################
+
+
+"""
+All the function related in Product
+
+1. Get product per id 
+2. Get all the product from spsific category
+
+"""
 @api_view(['GET'])
-def get_products(request):
+def get_all_products(requset):
     products_serilaizer = ProductSerializer(Product.objects.all(), many=True)
-    return Response(products_serilaizer.data)
+    return Response (products_serilaizer.data)
+
 
 
 @api_view(['GET'])
@@ -145,6 +150,14 @@ def product_from_category(request, pk):
 ################################################
 
 
+"""
+All the function related in Review
+
+1. Send review + rating on spsific product
+2. Get data from review per product
+
+"""
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def send_review(request):
@@ -168,12 +181,6 @@ def send_review(request):
 
 
 @api_view(['GET'])
-def get_all_review(request):
-    serializer = ReviweSerializer(Reviwe.objects.all(), many=True)
-    return Response(serializer.data)
-
-
-@api_view(['GET'])
 def get_review_spsific_prod(request, pk):
     reviews = Reviwe.objects.filter(product=Product.objects.get(id=pk))
     serializer = ReviweSerializer(reviews, many=True)
@@ -183,7 +190,14 @@ def get_review_spsific_prod(request, pk):
 ###########################################
 ########## order ##########################
 ###########################################
+"""
+All the function related in order
 
+1. Create a new order 
+2. Get data all products in spsific user buy 
+3. Get all the data in orders per user
+
+"""
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -210,7 +224,6 @@ def return_all_product_in_order_user(request):
 @permission_classes([IsAuthenticated])
 def create_new_order(request): 
     order_serializer = OrderSerializer(data=request.data["orderData"], context={"user": request.user})
-    print(request.data)
     order_serializer.is_valid(raise_exception=True)
     order = order_serializer.save()
     # Create a list of order details and save them
@@ -225,15 +238,11 @@ def create_new_order(request):
         for item in request.data["orderDetails"]
     ]
     order_detail_serializer = OrderItemSerializer(data=order_details, many=True)
-    print(order_detail_serializer)
     order_detail_serializer.is_valid(raise_exception=True)
-    print(order_detail_serializer.data)
-
     order_detail_serializer.save()
 
     # Calculate the order total and qty
     order_total = round(sum(detail["total"] for detail in order_details), 2)
-    print(order_total)
     order_qty = sum(detail["qty"] for detail in order_details)
 
     # Update the order with the total and qty
