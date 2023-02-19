@@ -210,10 +210,9 @@ def return_all_product_in_order_user(request):
 @permission_classes([IsAuthenticated])
 def create_new_order(request): 
     order_serializer = OrderSerializer(data=request.data["orderData"], context={"user": request.user})
-    print(request.user)
+    print(request.data)
     order_serializer.is_valid(raise_exception=True)
     order = order_serializer.save()
-
     # Create a list of order details and save them
     order_details = [
         {
@@ -221,11 +220,15 @@ def create_new_order(request):
             "order": order.id,
             "qty": item["qty"],
             "total": float(item["price"]) * item["qty"],
+            "name" : request.user.id
         }
         for item in request.data["orderDetails"]
     ]
     order_detail_serializer = OrderItemSerializer(data=order_details, many=True)
+    print(order_detail_serializer)
     order_detail_serializer.is_valid(raise_exception=True)
+    print(order_detail_serializer.data)
+
     order_detail_serializer.save()
 
     # Calculate the order total and qty
