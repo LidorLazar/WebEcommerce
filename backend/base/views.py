@@ -9,6 +9,7 @@ from .serilaizer import ProductSerializer, OrderItemSerializer, ProfileSerialize
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password
 
 
@@ -66,6 +67,12 @@ def register(request):
             user = Profile.objects.create(name=data['name'], email=data['email'], username=data['name'],
                                           address=data['address'], city=data['city'], password=password)
             serializer = ProfileSerializer(user, many=False)
+            subject = 'Welcome to My Site!'
+            message = 'Thank you for registering on our site.'
+            from_email = 'soccerstorelidor@gmail.com'
+            recipient_list = [email]
+            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+
             return Response(serializer.data)
 
 
